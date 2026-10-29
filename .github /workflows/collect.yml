@@ -1,0 +1,49 @@
+name: 일일 수집
+
+on:
+  schedule:
+    - cron: "30 23 * * *"   # 매일 08:30 KST
+  workflow_dispatch:
+    inputs:
+      when:
+        description: "수집 기간 (예: 2d, 7d)"
+        default: "2d"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 수집
+        run: |
+          pip install -q -r requirements.txt
+          python3 radar/collect.py --when "${{ github.event.inputs.when || '2d' }}"
+      - name: 페이지 갱신·커밋·푸시
+        run: |
+          git config user.name "mice-radar-bot"
+          git config user.email "actions@users.noreply.github.com"
+          cp data/news.db "$RUNNER_TEMP/news.db"
+          # 브리핑 업로드와 겹쳐도 충돌하지 않도록, 매 시도마다 최신 main 위에서 페이지를 다시 만든다
+          for i in 1 2 3; do
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            cp "$RUNNER_TEMP/news.db" data/news.db
+            python3 radar/briefings.py
+            python3 radar/build.py --days 7
+            git add data/news.db docs
+            if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+            git commit -qm "수집: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST"
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((i * 10))
+          done
+          echo "push 3회 실패"; exit 1
