@@ -12,31 +12,51 @@ sys.path.insert(0, os.path.dirname(__file__))
 from common import BRIEF_DIR, DOCS, list_briefings, now_kst  # noqa: E402
 
 WD = "월화수목금토일"
+FONT_LINKS = """<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&family=Nanum+Brush+Script&family=Permanent+Marker&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">"""
+
 CSS = """
-:root{--ink:#1C1B1B;--g1:#8D8B8B;--g3:#5F5D5C;--or:#E49000;--or2:#C47A00;--line:#E7E4E2;--line2:#DEDBD9;--bg:#FAF8F6}
-*{box-sizing:border-box}
-body{margin:0;background:#fff;color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;word-break:keep-all;overflow-wrap:break-word;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-a{color:inherit;text-decoration:none}
-.w{max-width:900px;margin:0 auto;padding:0 20px}
-.bar{display:flex;height:5px}.bar i{flex:1}.bar i:nth-child(1){background:#D80024}.bar i:nth-child(2){background:#E49000}.bar i:nth-child(3){background:#F2DF4E}.bar i:nth-child(4){background:#E478A8}
-header{border-bottom:1px solid var(--line)}header .w{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-top:18px;padding-bottom:16px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:16px}.kto{display:block;height:38px;width:112px;background:url(KTO_URI) left center/contain no-repeat}.brand .vl{width:1px;height:40px;background:var(--line2)}
-.cap{font-size:12px;color:var(--g1)}.cap b{color:var(--g3);font-weight:700}h1{margin:1px 0 0;font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
-.back{font-size:13px;font-weight:700;color:var(--g3);border:1px solid var(--line2);padding:7px 12px;white-space:nowrap}.back:hover{border-color:var(--ink);color:var(--ink)}
-.sub{display:flex;justify-content:space-between;align-items:flex-end;margin:26px 0 0;padding-bottom:10px;border-bottom:1px solid var(--ink);flex-wrap:wrap;gap:8px}
-.lbl{font-size:12px;font-weight:800;color:var(--or);letter-spacing:.06em}.lbl::before{content:"◆";font-size:9px;margin-right:6px;vertical-align:1px}
-h2{margin:3px 0 0;font-size:20px;font-weight:800}.sub .n{font-size:12px;color:var(--g1)}
-ol{list-style:none;margin:0 0 30px;padding:0}
-li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line)}
-li:first-child{background:var(--bg);padding-left:14px;padding-right:14px;border-left:3px solid var(--or)}
-.d{font-size:17px;font-weight:800;letter-spacing:-.01em}.d small{display:block;font-size:12.5px;color:var(--g1);font-weight:500;margin-top:1px}
-.new{display:inline-block;font-size:10.5px;font-weight:800;color:#fff;background:var(--or);padding:1px 7px;margin-left:8px;vertical-align:2px}
-a.pdf{font-size:13px;font-weight:800;color:var(--ink);border:1px solid var(--ink);padding:7px 14px;white-space:nowrap}a.pdf:hover{background:var(--ink);color:#fff}
-.empty{padding:28px 4px;color:var(--g1);font-size:13.5px}
-footer{margin-top:40px;border-top:1px solid var(--ink)}footer .w{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding-top:14px;padding-bottom:36px;font-size:12px;color:var(--g1)}
-footer .fr{display:flex;align-items:center;gap:12px}.sp{display:block;width:112px;height:25px;background:url(SP_URI) right center/contain no-repeat}
-@media(max-width:680px){.cap{display:none}h1{font-size:21px}.kto{height:32px;width:94px}.brand .vl{height:34px}}
+:root{--paper:#fff;--ink:#2b2f45;--navy:#16193A;--sub:#4a5068;--mute:#7b8197;--rule:#d9dbe6;--wash:#f5f6fa;--cream:#FFF6E5;--yel:#FFC845;--red:#D9472B;
+--f-body:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;--f-title:"Jua","Noto Sans KR",sans-serif;--f-hand:"Gaegu","Noto Sans KR",sans-serif;--f-mark:"Permanent Marker","Jua",cursive;--f-brush:"Nanum Brush Script","Jua",cursive}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}.wrap{max-width:880px;margin:0 auto;padding:14px 20px 40px}
+.sk{position:relative}.sk-frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}.sk>*:not(.sk-frame){position:relative;z-index:1}
+.org{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:4px 2px 10px}
+.org .l{display:flex;align-items:center;gap:14px}.kto{display:block;width:118px;height:40px;background:url(KTO_URI) left center/contain no-repeat}
+.org .vl{width:1px;height:30px;background:var(--rule)}.org .cap{font-family:var(--f-hand);font-size:16px;font-weight:700;color:var(--sub);line-height:1.25}.org .cap small{display:block;font-size:13px;font-weight:400;color:var(--mute)}
+.org .r{display:flex;align-items:center;gap:10px;font-family:var(--f-hand);font-size:14px;color:var(--mute)}.sp{display:block;width:104px;height:24px;background:url(SP_URI) right center/contain no-repeat}
+.mast{position:relative;background:var(--navy);color:var(--cream);border-radius:22px 30px 20px 28px/28px 20px 30px 22px;padding:14px 26px 28px;overflow:hidden}
+.mast::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;background:repeating-linear-gradient(90deg,rgba(255,246,229,.55) 0 2px,transparent 2px 12px),repeating-linear-gradient(90deg,rgba(255,200,69,.95) 0 3px,transparent 3px 60px);background-size:auto 9px,auto 16px;background-repeat:repeat-x;background-position:0 100%,0 100%;filter:url(#rough-f)}
+.m-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--f-hand);font-size:16px;font-weight:700;color:rgba(255,246,229,.82);border-bottom:2px dashed rgba(255,246,229,.3);padding-bottom:8px}
+.m-kick{font-family:var(--f-mark);font-size:14px;letter-spacing:.08em;color:var(--yel);transform:rotate(-1.5deg);display:inline-block}.m-top a{color:var(--yel);text-decoration:underline;text-underline-offset:3px}
+.m-main{display:flex;align-items:center;justify-content:center;gap:18px;margin:12px 0 4px;flex-wrap:wrap}
+.m-en{position:relative;margin:0;font-family:var(--f-mark);font-weight:400;font-size:clamp(40px,7vw,72px);line-height:.95;color:var(--cream);transform:rotate(-2.5deg);padding-bottom:.12em}
+.m-scribble{position:absolute;left:4%;bottom:-.04em;width:96%;height:.16em;overflow:visible}
+.m-ko{position:relative;transform:rotate(2deg);padding-left:16px}.m-ko::before{content:"";position:absolute;left:0;top:6%;bottom:6%;width:4px;border-radius:3px;background:var(--yel);transform:rotate(-3deg)}
+.m-ko b{display:block;font-family:var(--f-brush);font-weight:400;font-size:clamp(44px,6.5vw,68px);line-height:.9;color:var(--cream)}
+.m-ko span{display:block;font-family:var(--f-hand);font-weight:700;font-size:16px;letter-spacing:.08em;color:var(--yel);margin-top:4px}
+.m-tag{text-align:center;margin:6px 0 4px;font-family:var(--f-title);font-size:16px;color:rgba(255,246,229,.9)}
+.sub{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin:24px 0 12px}
+.sub h2{font-family:var(--f-title);font-weight:400;font-size:30px;margin:0;line-height:1}.sub .n{font-family:var(--f-hand);font-size:15px;color:var(--sub)}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 18px;min-width:0}
+.d{font-family:var(--f-title);font-size:21px;line-height:1.2}.d small{display:block;font-family:var(--f-body);font-size:13px;color:var(--mute);margin-top:3px}
+.new{display:inline-block;font-family:var(--f-title);font-size:13px;color:var(--navy);background:var(--yel);padding:1px 9px;margin-left:8px;vertical-align:3px;border-radius:255px 15px 225px 15px/15px 225px 15px 255px;transform:rotate(-2deg)}
+a.pdf{font-family:var(--f-title);font-size:15px;color:#fff;background:var(--navy);padding:7px 16px;white-space:nowrap;border-radius:255px 15px 225px 15px/15px 225px 15px 255px}a.pdf:hover{background:var(--red)}
+.empty{font-family:var(--f-hand);font-size:16px;color:var(--mute);padding:20px 4px}
+.foot{margin-top:30px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mute)}
+.foot .r{display:flex;align-items:center;gap:10px;font-family:var(--f-hand);font-size:14px}
+@media(max-width:640px){.org .cap{display:none}.kto{width:100px;height:34px}.m-main{flex-direction:column;gap:6px}.m-ko{padding-left:0;text-align:center}.m-ko::before{display:none}li{flex-direction:column;align-items:flex-start}.d{font-size:19px}}
 """
+SCRIBBLE = """<svg class="m-scribble" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9 C60 3 120 12 180 6 S270 4 297 8" stroke="#FFC845" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M40 12 C110 8 190 13 262 9" stroke="#FFC845" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".7"/></svg>"""
+ROUGH_DEFS = """<svg width="0" height="0" aria-hidden="true" style="position:absolute"><filter id="rough-f"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="3.2"/></filter></svg>"""
+JS = """(function(){if(!window.rough)return;var SEED=11,INK='#3a3f55';
+function frame(el,i){var old=el.querySelector(':scope > svg.sk-frame');if(old)old.remove();var w=el.offsetWidth,h=el.offsetHeight;if(!w||!h)return;
+var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','sk-frame');svg.setAttribute('viewBox','0 0 '+w+' '+h);
+svg.appendChild(rough.svg(svg).rectangle(2,2,w-4,h-4,{stroke:el.dataset.skStroke||INK,strokeWidth:1.2,roughness:1.3,bowing:1.4,fill:'none',seed:SEED+i}));el.insertBefore(svg,el.firstChild);}
+function run(){document.querySelectorAll('.sk').forEach(frame);}var t;function rerun(){clearTimeout(t);t=setTimeout(run,150);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rerun);window.addEventListener('resize',rerun);})();"""
 
 
 def data_uri(name):
@@ -54,20 +74,24 @@ def main():
     for i, (d, f, size) in enumerate(briefs):
         dt = date(int(d[:4]), int(d[4:6]), int(d[6:]))
         new = '<span class="new">최신</span>' if i == 0 else ""
-        items.append(f'<li><span class="d">{dt:%Y. %m. %d.} ({WD[dt.weekday()]}){new}<small>일일 이슈 브리핑 · A4 1쪽 · {size / 1024:,.0f}KB</small></span>'
-                     f'<a class="pdf" href="{html.escape(f)}" target="_blank" rel="noopener">PDF 보기</a></li>')
+        items.append(f'<li class="sk"><span class="d">{dt:%Y. %m. %d.} ({WD[dt.weekday()]}){new}<small>제{len(briefs) - i}호 · 일일 이슈 브리핑 · A4 1쪽 · {size / 1024:,.0f}KB</small></span>'
+                     f'<a class="pdf" href="{html.escape(f)}" target="_blank" rel="noopener">PDF 열기 →</a></li>')
     body = "".join(items) or '<li class="empty">아직 등록된 브리핑이 없음</li>'
     kto, sp = data_uri("kto_signature.png"), data_uri("southernpost.png")
     css = CSS.replace("KTO_URI", kto).replace("SP_URI", sp)
     brand_logo = '<span class="kto" role="img" aria-label="한국관광공사"></span><span class="vl"></span>' if kto else ""
     sp_logo = '<span class="sp" role="img" aria-label="서던포스트"></span>' if sp else "<b>(주)서던포스트</b>"
+    org_l = ('<span class="kto" role="img" aria-label="한국관광공사"></span><span class="vl"></span>' if kto else "") + \
+        '<div class="cap">MICE 산업 일일 이슈 모니터링<small>일일 이슈 브리핑 모음 · A4 1쪽 PDF</small></div>'
     out = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>일일 이슈 브리핑 - MICE 이슈 레이더</title><style>{css}</style></head><body>
-<div class="bar"><i></i><i></i><i></i><i></i></div>
-<header><div class="w"><div class="brand">{brand_logo}<div><div class="cap">한국관광공사 <b>MICE 산업 일일 이슈 모니터링</b></div><h1>MICE 이슈 레이더</h1></div></div><a class="back" href="../">← 이슈 레이더 메인</a></div></header>
-<main class="w"><div class="sub"><div><div class="lbl">브리핑 모음</div><h2>일일 이슈 브리핑</h2></div><span class="n">총 {len(briefs):,}건 · 최신순</span></div><ol>{body}</ol></main>
-<footer><div class="w"><span>갱신 {now:%Y-%m-%d %H:%M} KST · 자료원 : https://baebong3.github.io/mice-radar/</span><div class="fr"><span>발주 한국관광공사 · 수행</span>{sp_logo}</div></div></footer>
-</body></html>"""
+<title>일일 이슈 브리핑 - MICE 이슈 레이더</title>{FONT_LINKS}<style>{css}</style></head><body>{ROUGH_DEFS}<div class="wrap">
+<div class="org"><div class="l">{org_l}</div><div class="r"><span>발주 한국관광공사 · 수행</span>{sp_logo}</div></div>
+<header class="mast"><div class="m-top"><span class="m-kick">KTO · MICE ISSUE RADAR</span><a href="../">← 이슈 레이더 메인으로</a></div>
+<div class="m-main"><h1 class="m-en">MICE{SCRIBBLE}</h1><div class="m-ko"><b>일일 이슈 브리핑</b><span>날짜별 PDF 모음</span></div></div>
+<p class="m-tag">매일 아침 수집 데이터에서 주요 이슈 3건과 트랙별 동향을 추려 A4 한 장에 담은 브리핑</p></header>
+<main><div class="sub"><h2>브리핑 모음</h2><span class="n">총 {len(briefs):,}호 · 최신순</span></div><ol>{body}</ol></main>
+<footer class="foot"><span>갱신 {now:%Y-%m-%d %H:%M} KST · 자료원 : https://baebong3.github.io/mice-radar/</span><div class="r"><span>발주 한국관광공사 · 수행</span>{sp_logo}</div></footer>
+</div><script src="../assets/rough.min.js"></script><script>{JS}</script></body></html>"""
     os.makedirs(BRIEF_DIR, exist_ok=True)
     with open(os.path.join(BRIEF_DIR, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(out)
