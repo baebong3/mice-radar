@@ -1,0 +1,42 @@
+name: 일일 수집
+
+on:
+  schedule:
+    - cron: "30 23 * * *"   # 매일 08:30 KST
+  workflow_dispatch:
+    inputs:
+      when:
+        description: "수집 기간 (예: 2d, 7d)"
+        default: "2d"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 수집
+        run: |
+          pip install -q -r requirements.txt
+          python3 radar/collect.py --when "${{ github.event.inputs.when || '2d' }}"
+      - name: 페이지 갱신
+        run: |
+          python3 radar/briefings.py
+          python3 radar/build.py --days 7
+      - name: 커밋·푸시
+        run: |
+          git config user.name "mice-radar-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/news.db docs
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -m "수집: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break; sleep 5; done
