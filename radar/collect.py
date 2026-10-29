@@ -54,10 +54,10 @@ def parse(xml_bytes):
         link = (it.findtext("link") or "").strip()
         src = it.find("source")
         media = (src.text or "").strip() if src is not None else ""
-        if media and title.endswith(" - " + media):
-            title = title[: -len(" - " + media)].strip()
-        elif not media and " - " in title:
+        if not media and " - " in title:
             title, media = title.rsplit(" - ", 1)
+        while media and title.endswith(" - " + media):  # 매체명이 두 번 붙는 경우 포함
+            title = title[: -len(" - " + media)].strip()
         pub = it.findtext("pubDate") or ""
         try:
             date = parsedate_to_datetime(pub).astimezone(KST).strftime("%Y-%m-%d")
@@ -126,6 +126,9 @@ def main():
                 total[track] += n
                 print(f"[{track}] {q}: {len(items)}건 중 신규 {n}건")
                 time.sleep(1)
+    # 분류 규칙이 바뀌어도 전체가 같은 기준이 되도록 매번 재분류
+    for url, title, summary in con.execute("select url, title, summary from news").fetchall():
+        con.execute("update news set category=? where url=?", (classify(title, summary or ""), url))
     con.commit()
     allc = con.execute("select count(*) from news").fetchone()[0]
     print(f"신규 {sum(total.values())}건 {total} / 누적 {allc}건 / 수집시각 {collected_at} KST")
