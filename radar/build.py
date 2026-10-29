@@ -6,6 +6,7 @@
 주제 가중치 · 보도 매체 수 · 최신성으로 헤드라인과 주요 뉴스를 고른다. 외부 패키지·CDN 없음.
 """
 import argparse
+import base64
 import html
 import os
 import re
@@ -30,66 +31,76 @@ DESC = {"리스크·쟁점": "국정감사 · 적자 · 무산 · 예산 삭감 
 TRACK_TAG = {"MICE 유치": "유치", "전시·컨벤션": "전시"}
 
 CSS = """
-:root{--ink:#1C1B1B;--g1:#8D8B8B;--g2:#A6A3A1;--g3:#5F5D5C;--or:#E49000;--or2:#C47A00;--red:#D80024;--line:#E7E4E2;--bg:#FAF8F6;--chip:#EFECEA;--soft:#FDF4E3}
+:root{--ink:#1C1B1B;--g1:#8D8B8B;--g2:#A6A3A1;--g3:#5F5D5C;--or:#E49000;--or2:#C47A00;--red:#D80024;--line:#E7E4E2;--line2:#DEDBD9;--bg:#FAF8F6;--chip:#EFECEA;--soft:#FDF4E3}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
-body{margin:0;background:#fff;color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;word-break:keep-all;line-height:1.5;-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}a:hover .tt,a.tt:hover{text-decoration:underline;text-underline-offset:3px}
-.w{max-width:1160px;margin:0 auto;padding:0 16px}
-header .w{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-top:22px;padding-bottom:14px;flex-wrap:wrap}
-.org{font-size:12.5px;color:var(--g1)}.org b{color:var(--g3)}
-h1{margin:2px 0 0;font-size:27px;font-weight:800;letter-spacing:-.02em}
-.hr{text-align:right}.hr .d{font-size:19px;font-weight:800}.hr .s{font-size:12.5px;color:var(--g1)}
-.bar{display:flex;height:4px}.bar i{flex:1}.bar i:nth-child(1){background:#D80024}.bar i:nth-child(2){background:#E49000}.bar i:nth-child(3){background:#F2DF4E}.bar i:nth-child(4){background:#E478A8}
+body{margin:0;background:#fff;color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;word-break:keep-all;overflow-wrap:break-word;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}a:hover .tt,a.tt:hover{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--or)}
+.w{max-width:1160px;margin:0 auto;padding:0 20px}
+.bar{display:flex;height:5px}.bar i{flex:1}.bar i:nth-child(1){background:#D80024}.bar i:nth-child(2){background:#E49000}.bar i:nth-child(3){background:#F2DF4E}.bar i:nth-child(4){background:#E478A8}
+header{border-bottom:1px solid var(--line)}
+header .w{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-top:18px;padding-bottom:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:16px}
+.kto{display:block;height:38px;width:112px;background:url(KTO_URI) left center/contain no-repeat}
+.brand .vl{width:1px;height:40px;background:var(--line2)}
+.cap{font-size:12px;color:var(--g1);letter-spacing:.01em}.cap b{color:var(--g3);font-weight:700}
+h1{margin:1px 0 0;font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.hr{text-align:right}.hr .d{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.2}.hr .s{font-size:12px;color:var(--g1);margin-top:2px}.hr .s a{color:var(--or2);font-weight:700}
 .strip{background:var(--bg);border-bottom:1px solid var(--line)}
-.strip .w{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:9px;padding-bottom:9px;flex-wrap:wrap}
-.flt{display:flex;gap:6px;flex-wrap:wrap}.flt button{font:inherit;font-size:13px;font-weight:700;padding:5px 13px;border:1px solid var(--line);background:#fff;color:var(--g3);cursor:pointer;border-radius:999px}
-.flt button.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.meta{font-size:12.5px;color:var(--g1)}.meta b{color:var(--ink)}
-.lbl{font-size:12px;font-weight:800;color:var(--or);letter-spacing:.04em}
-h2{margin:2px 0 0;font-size:21px;font-weight:800;letter-spacing:-.01em}
-.sec{margin-top:30px}.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:12px;flex-wrap:wrap}.sh .n{font-size:12.5px;color:var(--g1)}
-.chip{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:2px;color:#fff;white-space:nowrap}
-.tg{display:inline-block;font-size:11px;font-weight:700;padding:0 6px;border:1px solid var(--line);color:var(--g3);border-radius:2px;white-space:nowrap}
+.strip .w{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:0;padding-bottom:0;flex-wrap:wrap}
+.flt{display:flex}.flt button{font:inherit;font-size:13px;font-weight:700;padding:11px 16px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--g3);cursor:pointer;margin-bottom:-1px}
+.flt button.on{color:var(--ink);border-bottom-color:var(--or)}
+.meta{font-size:12px;color:var(--g1);padding:8px 0}.meta b{color:var(--ink)}
+.lbl{font-size:12px;font-weight:800;color:var(--or);letter-spacing:.06em}.lbl::before{content:"◆";font-size:9px;margin-right:6px;vertical-align:1px}
+h2{margin:3px 0 0;font-size:21px;font-weight:800;letter-spacing:-.01em}
+.sec{margin-top:34px}.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--ink);flex-wrap:wrap}.sh .n{font-size:12px;color:var(--g1)}
+.chip{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;color:#fff;white-space:nowrap;line-height:1.3}
+.tg{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;border:1px solid var(--line2);color:var(--g3);white-space:nowrap;line-height:1.3}
 .hero{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;margin-top:22px}
-.hl{border:1px solid var(--line);border-left:5px solid var(--or);padding:20px 22px;background:#fff}
-.hl .tt{display:block;font-size:27px;font-weight:800;line-height:1.32;letter-spacing:-.02em;margin:10px 0 8px}
+.hl{border:1px solid var(--line);border-top:3px solid var(--or);padding:20px 24px 18px;background:#fff;position:relative}
+.hl .tt{display:block;font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.02em;margin:12px 0 8px}
 .src{font-size:13px;color:var(--g1)}.src b{color:var(--g3)}
-.rel{margin:14px 0 0;padding:12px 0 0;border-top:1px dashed var(--line);list-style:none}
-.rel li{font-size:13.5px;padding:3px 0;display:flex;gap:8px}.rel li span{color:var(--g1);white-space:nowrap;font-size:12.5px}
+.rel{margin:16px 0 0;padding:12px 0 0;border-top:1px solid var(--line);list-style:none}
+.rel li{font-size:13.5px;padding:4px 0;display:flex;gap:10px;align-items:baseline}.rel li::before{content:"";width:5px;height:5px;background:var(--g2);flex:none;position:relative;top:-2px}
+.rel li span{color:var(--g1);white-space:nowrap;font-size:12.5px;flex:none}
 .rel li a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.kp{border:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;border-top:3px solid var(--or)}
-.kp>div{padding:12px 14px;border-bottom:1px solid var(--line)}.kp>div:nth-child(odd){border-right:1px solid var(--line)}
-.kp>div>b{display:block;font-size:24px;font-weight:800;line-height:1.2}.kp>div:first-child>b{color:var(--or)}
-.kp>div>span{font-size:12.5px;font-weight:700}.kp small{display:block;font-size:11.5px;color:var(--g1)}
+.kp{border:1px solid var(--line);border-top:3px solid var(--ink);display:grid;grid-template-columns:1fr 1fr;background:#fff}
+.kp>div{padding:13px 16px 11px;border-bottom:1px solid var(--line)}.kp>div:nth-child(odd){border-right:1px solid var(--line)}
+.kp>div>b{display:block;font-size:26px;font-weight:800;line-height:1.15;letter-spacing:-.02em}.kp>div:first-child>b{color:var(--or)}
+.kp>div>span{font-size:12.5px;font-weight:700;display:block;margin-top:3px}.kp small{display:block;font-size:11.5px;color:var(--g1);margin-top:1px}.kp small a{text-decoration:underline;text-underline-offset:2px}
 .kp .cats{grid-column:1/-1;border-right:0!important;border-bottom:0}
-.cb{display:flex;height:8px;margin:6px 0 6px;border-radius:2px;overflow:hidden}.cb i{display:block}
-.lg{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:11.5px;color:var(--g3)}.lg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
+.cb{display:flex;height:10px;margin:8px 0 8px}.cb i{display:block}
+.lg{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:11.5px;color:var(--g3)}.lg i{display:inline-block;width:8px;height:8px;margin-right:5px;vertical-align:0}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.card{border:1px solid var(--line);border-top:3px solid var(--c);padding:14px 15px 13px;display:flex;flex-direction:column;gap:8px;background:#fff}
-.card .tt{font-size:16.5px;font-weight:800;line-height:1.38;flex:1}
-.nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.nav a{font-size:13px;font-weight:700;padding:5px 11px;border:1px solid var(--line);border-radius:999px;color:var(--g3)}
-.nav a i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}.nav a em{font-style:normal;color:var(--g1);margin-left:4px;font-weight:500}
+.card{border:1px solid var(--line);border-top:3px solid var(--c);padding:14px 16px 14px;display:flex;flex-direction:column;gap:9px;background:#fff}
+.card:hover{border-color:var(--ink);border-top-color:var(--c)}
+.card .tt{font-size:16.5px;font-weight:800;line-height:1.38;flex:1;letter-spacing:-.01em}
+.nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.nav a{font-size:12.5px;font-weight:700;padding:6px 11px;border:1px solid var(--line2);color:var(--g3);background:#fff}
+.nav a:hover{border-color:var(--ink);color:var(--ink)}
+.nav a i{display:inline-block;width:8px;height:8px;margin-right:7px;vertical-align:0}.nav a em{font-style:normal;color:var(--g1);margin-left:5px;font-weight:500}
 .topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
 .tp{border:1px solid var(--line);background:#fff;scroll-margin-top:12px}.tp.full{grid-column:1/-1}
-.tp h3{margin:0;padding:11px 14px 10px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);font-size:16px;font-weight:800}
-.tp h3 i{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}.tp h3 small{font-size:12px;color:var(--g1);font-weight:500;flex:1}.tp h3 b{font-size:13px;color:var(--g3)}
-.tp ul{list-style:none;margin:0;padding:2px 14px}
-.tp li{padding:9px 0;border-bottom:1px solid var(--line)}.tp li:last-child{border-bottom:0}
+.tp h3{margin:0;padding:11px 16px 10px;display:flex;align-items:baseline;gap:9px;border-bottom:2px solid var(--ink);font-size:16px;font-weight:800;letter-spacing:-.01em}
+.tp h3 i{display:inline-block;width:10px;height:10px;flex:none;position:relative;top:0}.tp h3 small{font-size:12px;color:var(--g1);font-weight:500;flex:1}.tp h3 b{font-size:12.5px;color:var(--g3);font-weight:700}
+.tp ul{list-style:none;margin:0;padding:2px 16px}
+.tp li{padding:10px 0;border-bottom:1px solid var(--line)}.tp li:last-child{border-bottom:0}
 .tp li .tt{font-size:14.5px;font-weight:700;line-height:1.42}
-.tp li .m{font-size:12px;color:var(--g1);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tp li .m{font-size:12px;color:var(--g1);margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .tp li .m .many{color:var(--or2);font-weight:700}
-.tp.full ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+.tp.full ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}
 .tp.full li{border-bottom:1px solid var(--line)!important}
-details.more{border-top:1px solid var(--line)}details.more summary{cursor:pointer;padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--g3);list-style:none}
-details.more summary::before{content:"+ "}details.more[open] summary::before{content:"− "}
-.empty{padding:14px;color:var(--g1);font-size:13px}
-.etc{margin-top:14px;border:1px solid var(--line);background:var(--bg)}.etc summary{cursor:pointer;padding:10px 14px;font-size:13px;color:var(--g3);font-weight:700}
-.etc ul{list-style:none;margin:0;padding:0 14px 10px;columns:2;column-gap:24px}.etc li{font-size:12.5px;padding:3px 0;break-inside:avoid;color:var(--g3)}.etc li span{color:var(--g1)}
-footer{margin-top:36px;border-top:2px solid var(--ink)}footer .w{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:12px;padding-bottom:34px;font-size:12px;color:var(--g1)}footer b{color:var(--ink)}
+details.more{border-top:1px solid var(--line)}details.more summary{cursor:pointer;padding:9px 16px;font-size:12.5px;font-weight:700;color:var(--g3);list-style:none}
+details.more summary::before{content:"+";display:inline-block;width:14px;color:var(--or)}details.more[open] summary::before{content:"-"}
+.empty{padding:16px;color:var(--g1);font-size:13px}
+.etc{margin-top:14px;border:1px solid var(--line);background:var(--bg)}.etc summary{cursor:pointer;padding:10px 16px;font-size:13px;color:var(--g3);font-weight:700;list-style:none}.etc summary::before{content:"+";display:inline-block;width:14px;color:var(--or)}.etc[open] summary::before{content:"-"}
+.etc ul{list-style:none;margin:0;padding:0 16px 10px;columns:2;column-gap:28px}.etc li{font-size:12.5px;padding:3px 0;break-inside:avoid;color:var(--g3)}.etc li span{color:var(--g1)}
+footer{margin-top:40px;border-top:1px solid var(--ink)}footer .w{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding-top:14px;padding-bottom:36px;font-size:12px;color:var(--g1)}
+footer .fl{line-height:1.6}footer .fl b{color:var(--ink);font-weight:700}
+footer .fr{display:flex;align-items:center;gap:12px}footer .fr span{font-size:11.5px;color:var(--g1)}
+.sp{display:block;width:112px;height:25px;background:url(SP_URI) right center/contain no-repeat}
 body.f-유치 [data-tr]:not([data-tr~="유치"]),body.f-전시 [data-tr]:not([data-tr~="전시"]){display:none}
 @media(max-width:980px){.hero{grid-template-columns:minmax(0,1fr)}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:680px){.topics,.tp.full ul{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.hl .tt{font-size:22px}.hl{padding:16px}.etc ul{columns:1}h1{font-size:23px}.hr{text-align:left}}
+@media(max-width:680px){.cap{display:none}.topics,.tp.full ul{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.hl .tt{font-size:22px}.hl{padding:16px}.etc ul{columns:1}h1{font-size:22px}.hr{text-align:left}.kto{height:32px;width:94px}.brand .vl{height:34px}.flt button{padding:10px 12px}.kp>div>b{font-size:22px}}
 """
 
 JS = """
@@ -97,6 +108,15 @@ document.querySelectorAll('.flt button').forEach(function(b){b.addEventListener(
 document.querySelectorAll('.flt button').forEach(function(x){x.classList.toggle('on',x===b)});
 document.body.className=b.dataset.f?'f-'+b.dataset.f:'';});});
 """
+
+
+def data_uri(name):
+    """docs/assets/<name>을 base64 data URI로 (없으면 빈 문자열)"""
+    p = os.path.join(DOCS, "assets", name)
+    if not os.path.exists(p):
+        return ""
+    with open(p, "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode()
 
 
 def esc(s):
@@ -300,11 +320,15 @@ def main():
         etc_html = (f'<details class="etc"><summary>분류 외 기사 {len(etc)}건 (자동 수집 잡음 포함) 펼치기</summary>'
                     f'<ul>{etc_li}</ul></details>')
 
+    kto, sp = data_uri("kto_signature.png"), data_uri("southernpost.png")
+    css = CSS.replace("KTO_URI", kto).replace("SP_URI", sp)
+    brand_logo = '<span class="kto" role="img" aria-label="한국관광공사"></span><span class="vl"></span>' if kto else ""
+    sp_logo = '<span class="sp" role="img" aria-label="서던포스트"></span>' if sp else "<b>(주)서던포스트</b>"
     out = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MICE 이슈 레이더</title><meta name="description" content="한국관광공사 MICE 산업 일일 이슈 모니터링"><style>{CSS}</style></head><body>
-<header><div class="w"><div><div class="org">발주 <b>한국관광공사</b> · 수행 <b>(주)서던포스트</b></div><h1>MICE 이슈 레이더</h1></div>
-<div class="hr"><div class="d">{now:%Y. %m. %d.}</div><div class="s">({WD[now.weekday()]}) 최근 {a.days}일 · <a href="briefings/" style="text-decoration:underline">일일 브리핑 {len(briefs)}건</a></div></div></div></header>
+<title>MICE 이슈 레이더</title><meta name="description" content="한국관광공사 MICE 산업 일일 이슈 모니터링"><style>{css}</style></head><body>
 <div class="bar"><i></i><i></i><i></i><i></i></div>
+<header><div class="w"><div class="brand">{brand_logo}<div><div class="cap">한국관광공사 <b>MICE 산업 일일 이슈 모니터링</b></div><h1>MICE 이슈 레이더</h1></div></div>
+<div class="hr"><div class="d">{now:%Y. %m. %d.}</div><div class="s">({WD[now.weekday()]}) 최근 {a.days}일 · <a href="briefings/">일일 브리핑 {len(briefs)}건 →</a></div></div></div></header>
 <div class="strip"><div class="w"><div class="flt"><button class="on" data-f="">전체</button><button data-f="유치">MICE 유치</button><button data-f="전시">전시·컨벤션</button></div>
 <span class="meta">보도일 <b>{since[5:].replace('-', '.')} ~ {now:%m.%d}</b> · 같은 사안은 1건으로 묶음 · 매일 08:30 KST 자동수집</span></div></div>
 <main class="w">
@@ -314,8 +338,8 @@ def main():
 <section class="sec"><div class="sh"><div><div class="lbl">주제별</div><h2>주제별 동향</h2></div><span class="n">주제를 누르면 해당 묶음으로 이동</span></div>
 <nav class="nav">{''.join(nav)}</nav><div class="topics">{''.join(boxes)}</div>{etc_html}</section>
 </main>
-<footer><div class="w"><span>자료원 : Google News RSS 자동수집 (MICE 유치·전시·컨벤션 2개 트랙) · 주제 분류와 주요 뉴스 선정은 규칙 기반 자동 처리 · 생성 {now:%Y-%m-%d %H:%M} KST</span>
-<span>발주 한국관광공사 · 수행 <b>(주)서던포스트</b></span></div></footer>
+<footer><div class="w"><div class="fl">자료원 : <b>https://baebong3.github.io/mice-radar/</b> · Google News RSS 자동수집 (MICE 유치·전시·컨벤션 2개 트랙)<br>주제 분류와 주요 뉴스 선정은 규칙 기반 자동 처리 · 생성 {now:%Y-%m-%d %H:%M} KST</div>
+<div class="fr"><span>발주 한국관광공사 · 수행</span>{sp_logo}</div></div></footer>
 <script>{JS}</script>
 </body></html>"""
     os.makedirs(DOCS, exist_ok=True)
