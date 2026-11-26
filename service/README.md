@@ -38,6 +38,7 @@ python -m unittest service.tests.test_service     # 테스트
 | `collector.py` | 주제별 Google News RSS 수집, 중복 제목 제거 |
 | `summarize.py` | 핵심 뉴스 3개 선정 |
 | `reports.py` | 선정 결과 저장, 사용자별 화면·메일 본문 조립 |
+| `covers.py` | 주제 커버 이미지 생성 (주제어로 색과 무늬가 정해지는 SVG, `/cover.svg?q=주제`) |
 | `mailer.py` | SMTP 발송 (설정이 없으면 `data/outbox/`에 .eml 저장) |
 | `jobs.py` | 일일 작업, 요금제 수동 변경(`set-plan`), 현황(`stats`) |
 | `config.py` | 환경변수, 요금제 표, 추천 주제 |

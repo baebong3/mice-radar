@@ -12,11 +12,11 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import config, jobs, mailer, reports
+from . import config, covers, jobs, mailer, reports
 from .db import connect
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -283,6 +283,13 @@ def unsubscribe(request: Request, t: str = "", con=Depends(get_db)):
         con.execute("update users set mail_on=0 where unsub_token=?", (t,))
         con.commit()
     return page(request, "unsubscribe.html", t=t, done=True)
+
+
+@app.get("/cover.svg")
+def cover(q: str = ""):
+    """주제 커버 이미지 (주제어로 색과 무늬가 정해진다)"""
+    return Response(covers.cover_svg(q[:80]), media_type="image/svg+xml",
+                    headers={"Cache-Control": "public, max-age=604800"})
 
 
 @app.get("/sw.js")

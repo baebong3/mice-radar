@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS deliveries (
 def connect(path=None):
     path = path or config.DB_PATH
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    con = sqlite3.connect(path, timeout=30)
+    # 요청마다 연결을 따로 만들지만 FastAPI가 여는 스레드와 닫는 스레드가 다를 수 있다
+    con = sqlite3.connect(path, timeout=30, check_same_thread=False)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")
     con.execute("PRAGMA foreign_keys=ON")

@@ -16,7 +16,7 @@
   <ul class="rows">
     {% for b in blocks %}
     <li>
-      <a href="/app#t{{ b.id }}">{{ b.query }}</a>
+      <a href="/app#t{{ b.id }}"><img class="thumb" src="/cover.svg?q={{ b.query|urlencode }}" alt="" loading="lazy">{{ b.query }}</a>
       <form method="post" action="/topics/{{ b.id }}/delete" data-confirm="'{{ b.query }}' 주제를 삭제할까요?">
         <input type="hidden" name="csrf" value="{{ csrf }}">
         <button class="link danger" aria-label="{{ b.query }} 삭제">삭제</button>

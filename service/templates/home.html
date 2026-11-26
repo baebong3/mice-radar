@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
 <section class="hero">
+  <div class="hero-t">
   <p class="eyebrow">매일 아침 8시</p>
   <h1>주제별 핵심 뉴스,<br><em>하루 3개</em>만</h1>
   <p class="lead">관심 주제를 등록하면 그날 기사를 모아 가장 중요한 3건을 골라 한 문장씩 정리해 드립니다.</p>
@@ -9,15 +10,19 @@
     <button class="btn">무료로 시작</button>
   </form>
   <p class="hint">주제 5개까지 무료 · 비밀번호 없이 메일 링크로 로그인</p>
+  </div>
+  <img class="hero-art" src="/static/hero.svg" alt="휴대폰 화면에 주제별 핵심 뉴스 3개가 카드로 보이는 모습" width="560" height="520">
 </section>
+<h2 class="sec-h">이렇게 보입니다</h2>
 <section class="card topic sample" aria-label="화면 예시">
-  <header><h2>내가 등록한 주제</h2><span class="tag wait">화면 예시</span></header>
+  <header class="cover"><img src="/cover.svg?q=sample" alt=""><div class="cover-t"><h2>내가 등록한 주제</h2><span class="tag glass">화면 예시</span></div></header>
   <ol class="top3">
     <li><span class="rank" aria-hidden="true">01</span><div><span class="headline">오늘 가장 많이 보도된 사안</span><p class="sum">여러 매체가 다룬 기사를 하나로 묶어 한 문장으로 정리합니다.</p><p class="src">대표 기사 매체<span class="tag">8개 매체 보도</span></p></div></li>
     <li><span class="rank" aria-hidden="true">02</span><div><span class="headline">두 번째로 중요한 사안</span><p class="sum">제목을 누르면 원문 기사로 이동합니다.</p><p class="src">대표 기사 매체<span class="tag">4개 매체 보도</span></p></div></li>
     <li><span class="rank" aria-hidden="true">03</span><div><span class="headline">세 번째로 중요한 사안</span><p class="sum">나머지 기사는 '전체 기사 보기'에서 확인합니다.</p><p class="src">대표 기사 매체</p></div></li>
   </ol>
 </section>
+<h2 class="sec-h">쓰는 방법</h2>
 <ol class="steps">
   <li><b>주제 등록</b><span>"반도체 수출", 회사명, 정책명처럼 검색어 그대로 넣습니다.</span></li>
   <li><b>매일 수집</b><span>주제별로 새 기사를 모으고 중복 기사는 걸러냅니다.</span></li>

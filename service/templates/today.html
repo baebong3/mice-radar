@@ -1,24 +1,28 @@
 {% extends "base.html" %}
 {% block title %}오늘의 핵심 뉴스 · {{ service }}{% endblock %}
 {% block body %}
-<section class="page-h">
+<section class="banner">
+  <img class="deco" src="/static/radar.svg" alt="" width="220" height="220">
   <p class="eyebrow">{{ today|pretty_date }}</p>
   <h1>오늘의 핵심 뉴스</h1>
+  {% if blocks %}
+  <div class="stats">
+    <span><b>{{ blocks|length }}</b>/{{ limit }} 주제</span>
+    <span><b>{{ blocks|sum(attribute="count") }}</b>건 새 기사</span>
+  </div>
+  {% else %}
+  <p class="banner-sub">주제를 고르면 여기에 매일 3개씩 올라옵니다.</p>
+  {% endif %}
 </section>
-{% if blocks %}
-<div class="kpis">
-  <div class="kpi"><span>등록 주제</span><b>{{ blocks|length }}<small>/ {{ limit }}개</small></b></div>
-  <div class="kpi"><span>새 기사</span><b>{{ blocks|sum(attribute="count") }}<small>건</small></b></div>
-</div>
-{% endif %}
 
 {% if not blocks %}
 <section class="card onboard">
   <h2>첫 주제를 골라 보십시오</h2>
   <p class="meta">누르면 바로 수집을 시작합니다. 무료로 {{ limit }}개까지 등록할 수 있습니다.</p>
-  <div class="chips">
+  <div class="tiles">
     {% for q in suggested %}
-    <form method="post" action="/topics"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="query" value="{{ q }}"><button class="chip">+ {{ q }}</button></form>
+    <form method="post" action="/topics"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="query" value="{{ q }}">
+      <button class="tile"><img src="/cover.svg?q={{ q|urlencode }}" alt="" loading="lazy"><span>{{ q }}</span><i aria-hidden="true">+</i></button></form>
     {% endfor %}
   </div>
   <form method="post" action="/topics" class="add">
@@ -37,9 +41,12 @@
 
 {% for b in blocks %}
 <section class="card topic" id="t{{ b.id }}">
-  <header>
-    <h2>{{ b.query }}</h2>
-    {% if b.date and b.count %}<span class="tag">{% if b.date != today %}{{ b.date|pretty_date }} · {% endif %}새 기사 {{ b.count }}건</span>{% endif %}
+  <header class="cover">
+    <img src="/cover.svg?q={{ b.query|urlencode }}" alt="" loading="lazy">
+    <div class="cover-t">
+      <h2>{{ b.query }}</h2>
+      {% if b.date and b.count %}<span class="tag glass">{% if b.date != today %}{{ b.date|pretty_date }} · {% endif %}새 기사 {{ b.count }}건</span>{% endif %}
+    </div>
   </header>
   {% if not b.date %}
   <p class="pending" data-pending>기사를 모으는 중입니다. 잠시만 기다려 주십시오.</p>

@@ -6,6 +6,7 @@ import pathlib
 import re
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 
 _TMP = tempfile.mkdtemp()
 os.environ.update(RADAR_DB=os.path.join(_TMP, "t.db"), RADAR_OUTBOX=os.path.join(_TMP, "outbox"),
@@ -193,6 +194,11 @@ class ServiceTest(unittest.TestCase):
         self.assertIn("첫 주제를 골라", self.c.get("/app").text)
         add(self.c, "반도체")
         self.assertEqual(self.c.get("/app").text.count('class="rank"'), 2)
+        svg = self.c.get("/cover.svg", params={"q": "반도체"})
+        self.assertEqual(svg.headers["content-type"], "image/svg+xml")
+        self.assertEqual(svg.text, self.c.get("/cover.svg", params={"q": " 반도체 "}).text)  # 같은 주제는 같은 그림
+        self.assertNotEqual(svg.text, self.c.get("/cover.svg", params={"q": "환율"}).text)
+        ET.fromstring(svg.text)
         for path in ("/topics", "/settings", "/plans"):
             self.assertEqual(self.c.get(path).status_code, 200, path)
         self.assertEqual(TestClient(web.app).get("/").text.count('class="rank"'), 3)
