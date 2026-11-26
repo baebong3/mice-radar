@@ -26,17 +26,17 @@ SUMMARY_EFFORT = os.environ.get("RADAR_SUMMARY_EFFORT", "low")
 COLLECT_WHEN = os.environ.get("RADAR_COLLECT_WHEN", "2d")
 SEND_HOUR = int(os.environ.get("RADAR_SEND_HOUR", "8"))  # KST, 내장 스케줄러용
 SCHEDULER = os.environ.get("RADAR_SCHEDULER", "0") == "1"
-ARTICLES_PER_TOPIC = 8
+ARTICLES_PER_TOPIC = 20
 
-# 요금제: (코드, 이름, 주제 수, 월 요금(원)). 금액은 가안이며 결제 연동 전이다.
+# 요금제: (코드, 이름, 주제 수, 월 요금(원), 한 줄 설명). 결제는 아직 연동하지 않았다.
 PLANS = [
-    ("free", "무료", 5, 0),
-    ("basic", "베이직", 15, 4900),
-    ("pro", "프로", 40, 9900),
-    ("business", "비즈니스", 100, 29000),
+    ("free", "무료", 5, 0, "관심사 몇 가지를 챙기는 개인"),
+    ("plus", "플러스", 15, 4900, "업계와 경쟁사를 함께 보는 실무자"),
+    ("pro", "프로", 40, 9900, "여러 과제를 맡은 담당자"),
+    ("team", "팀", 100, 29000, "부서 단위 모니터링"),
 ]
-PLAN_LIMIT = {code: limit for code, _, limit, _ in PLANS}
-PLAN_NAME = {code: name for code, name, _, _ in PLANS}
+PLAN_LIMIT = {p[0]: p[2] for p in PLANS}
+PLAN_NAME = {p[0]: p[1] for p in PLANS}
 
 LOGIN_TOKEN_MINUTES = 20
 SESSION_DAYS = 30
@@ -49,3 +49,13 @@ def now_kst():
 
 def today_kst():
     return now_kst().strftime("%Y-%m-%d")
+
+WEEKDAYS = "월화수목금토일"
+# 처음 들어온 사람에게 한 번 눌러 등록하도록 보여주는 주제
+SUGGESTED = ["인공지능", "반도체", "부동산 정책", "전기차", "환율", "관광 산업"]
+
+
+def pretty_date(day):
+    """'2026-11-26' → '11월 26일 (목)'"""
+    d = datetime.strptime(day, "%Y-%m-%d")
+    return f"{d.month}월 {d.day}일 ({WEEKDAYS[d.weekday()]})"

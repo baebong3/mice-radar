@@ -1,0 +1,13 @@
+{# 주제 하나의 핵심 뉴스 3개. b = topic block #}
+<ol class="top3">
+{% for it in b["items"] %}
+  <li>
+    <span class="rank" aria-hidden="true">{{ loop.index }}</span>
+    <div>
+      <a class="headline" href="{{ it.url }}" target="_blank" rel="noopener noreferrer">{{ it.title }}</a>
+      {% if it.summary %}<p class="sum">{{ it.summary }}</p>{% endif %}
+      <p class="src">{{ it.media }}{% if it.count > 1 %} 외 {{ it.count - 1 }}건 보도{% endif %}</p>
+    </div>
+  </li>
+{% endfor %}
+</ol>

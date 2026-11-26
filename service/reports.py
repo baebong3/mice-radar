@@ -1,4 +1,4 @@
-"""주제별 요약 저장과 사용자별 리포트 조립"""
+"""주제별 핵심 뉴스 저장과 사용자별 리포트 조립"""
 import json
 from html import escape
 
@@ -7,32 +7,33 @@ from .summarize import summarize
 
 
 def build_digest(con, topic_id, query, day, summarizer=summarize):
-    """그날 새로 들어온 기사로 주제 요약을 만들어 저장한다. 기사 수를 돌려준다."""
+    """그날 새로 들어온 기사로 핵심 뉴스를 골라 저장한다. 기사 수를 돌려준다."""
     arts = [dict(r) for r in con.execute(
-        "select title, media, summary from articles where topic_id=? and collected_on=? order by id",
+        "select title, url, media, summary from articles where topic_id=? and collected_on=? order by id",
         (topic_id, day))]
-    lines, method = summarizer(query, arts)
+    items, method = summarizer(query, arts)
     con.execute(
-        "insert into digests(topic_id,date,lines,method,article_count) values(?,?,?,?,?)"
-        " on conflict(topic_id,date) do update set lines=excluded.lines, method=excluded.method,"
+        "insert into digests(topic_id,date,items,method,article_count) values(?,?,?,?,?)"
+        " on conflict(topic_id,date) do update set items=excluded.items, method=excluded.method,"
         " article_count=excluded.article_count",
-        (topic_id, day, json.dumps(lines, ensure_ascii=False), method, len(arts)))
+        (topic_id, day, json.dumps(items, ensure_ascii=False), method, len(arts)))
     con.commit()
     return len(arts)
 
 
 def topic_block(con, topic_id, query, day=None):
-    """주제 하나의 요약과 기사 목록. day가 없으면 가장 최근 요약."""
+    """주제 하나의 핵심 뉴스와 기사 목록. day가 없으면 기사가 있었던 가장 최근 날."""
     if day:
         d = con.execute("select * from digests where topic_id=? and date=?", (topic_id, day)).fetchone()
     else:
-        d = con.execute("select * from digests where topic_id=? order by date desc limit 1", (topic_id,)).fetchone()
+        d = con.execute("select * from digests where topic_id=? order by article_count>0 desc, date desc limit 1",
+                        (topic_id,)).fetchone()
     block = {"id": topic_id, "query": query, "date": d["date"] if d else None,
-             "lines": json.loads(d["lines"]) if d else [], "method": d["method"] if d else "none",
+             "items": json.loads(d["items"]) if d else [], "method": d["method"] if d else "none",
              "count": d["article_count"] if d else 0, "articles": []}
     if d:
         block["articles"] = [dict(r) for r in con.execute(
-            "select title, url, media, date from articles where topic_id=? and collected_on=? order by id limit ?",
+            "select title, url, media from articles where topic_id=? and collected_on=? order by id limit ?",
             (topic_id, d["date"], config.ARTICLES_PER_TOPIC))]
     return block
 
@@ -47,44 +48,49 @@ def user_report(con, user_id, day=None):
     return [topic_block(con, t["id"], t["query"], day) for t in user_topics(con, user_id)]
 
 
+def _meta(item):
+    more = f" 외 {item['count'] - 1}건" if item["count"] > 1 else ""
+    return f"{item['media']}{more}".strip()
+
+
 def render_email(blocks, day, unsub_url):
     """(제목, 본문 텍스트, 본문 HTML)"""
-    total = sum(b["count"] for b in blocks)
-    subject = f"[{config.SERVICE_NAME}] {day} 일일 리포트 · 새 기사 {total}건"
-    text = [f"{config.SERVICE_NAME} 일일 리포트 ({day})", ""]
+    blocks = [b for b in blocks if b["count"]] + [b for b in blocks if not b["count"]]
+    first = next((b["items"][0]["title"] for b in blocks if b["items"]), "")
+    subject = f"[{config.SERVICE_NAME}] {day[5:7]}/{day[8:]} 핵심 뉴스 · {first}"[:120]
+    text = [f"{config.SERVICE_NAME} · {day} 핵심 뉴스", ""]
     html = [
-        '<div style="max-width:640px;margin:0 auto;font-family:-apple-system,\'Malgun Gothic\',sans-serif;'
-        'color:#1b2430;line-height:1.6">',
-        f'<p style="font-size:13px;color:#6b7785;margin:0">{escape(day)} 일일 리포트</p>',
-        f'<h1 style="font-size:22px;margin:4px 0 20px">{escape(config.SERVICE_NAME)}</h1>',
+        '<div style="max-width:560px;margin:0 auto;font-family:-apple-system,\'Malgun Gothic\',sans-serif;'
+        'color:#1b2430;line-height:1.55">',
+        f'<p style="font-size:13px;color:#6b7785;margin:0">{escape(day)}</p>',
+        '<h1 style="font-size:22px;margin:2px 0 8px">오늘의 핵심 뉴스</h1>',
     ]
     for b in blocks:
-        text += [f"■ {b['query']} (새 기사 {b['count']}건)"]
-        html.append(
-            f'<h2 style="font-size:17px;margin:24px 0 6px;padding-top:14px;border-top:2px solid #14324f">'
-            f'{escape(b["query"])} <span style="font-size:13px;font-weight:400;color:#6b7785">'
-            f'새 기사 {b["count"]}건</span></h2>')
+        text.append(f"■ {b['query']}")
+        html.append(f'<h2 style="font-size:16px;margin:26px 0 4px;padding:6px 10px;background:#14324f;color:#fff;'
+                    f'border-radius:6px">{escape(b["query"])}</h2>')
         if not b["count"]:
             text += ["  새 기사가 없습니다.", ""]
-            html.append('<p style="margin:0;color:#6b7785">새 기사가 없습니다.</p>')
+            html.append('<p style="margin:8px 0;color:#6b7785;font-size:14px">새 기사가 없습니다.</p>')
             continue
-        label = "핵심 이슈" if b["method"] == "llm" else "주요 기사"
-        text += [f"  [{label}]"] + [f"  - {ln}" for ln in b["lines"]] + ["  [기사]"]
-        html.append(f'<p style="margin:8px 0 2px;font-size:13px;font-weight:700;color:#d2452d">{label}</p><ul '
-                    'style="margin:0;padding-left:20px">'
-                    + "".join(f"<li>{escape(ln)}</li>" for ln in b["lines"]) + "</ul>")
-        html.append('<p style="margin:12px 0 2px;font-size:13px;font-weight:700;color:#6b7785">기사</p>'
-                    '<ul style="margin:0;padding-left:20px;font-size:14px">')
-        for a in b["articles"]:
-            text.append(f"  - {a['title']} ({a['media']}) {a['url']}")
-            html.append(f'<li><a href="{escape(a["url"], quote=True)}" style="color:#14324f">{escape(a["title"])}</a>'
-                        f' <span style="color:#6b7785">{escape(a["media"] or "")}</span></li>')
-        html.append("</ul>")
+        for i, it in enumerate(b["items"], 1):
+            text.append(f"  {i}. {it['title']} ({_meta(it)})")
+            if it["summary"]:
+                text.append(f"     {it['summary']}")
+            text.append(f"     {it['url']}")
+            html.append(
+                '<table role="presentation" style="border-collapse:collapse;margin:12px 0"><tr>'
+                f'<td style="vertical-align:top;padding-right:10px;font-size:22px;font-weight:800;color:#d2452d">{i}</td>'
+                f'<td><a href="{escape(it["url"], quote=True)}" style="color:#1b2430;font-weight:700;font-size:16px;'
+                f'text-decoration:none">{escape(it["title"])}</a>'
+                + (f'<div style="font-size:14px;margin-top:2px">{escape(it["summary"])}</div>' if it["summary"] else "")
+                + f'<div style="font-size:12px;color:#6b7785;margin-top:2px">{escape(_meta(it))}</div></td></tr></table>')
         text.append("")
+        html.append(f'<p style="margin:0;font-size:12px;color:#6b7785">새 기사 {b["count"]}건 중에서 골랐습니다.</p>')
     app_url = f"{config.BASE_URL}/app"
-    text += [f"주제 관리: {app_url}", f"수신 거부: {unsub_url}"]
+    text += [f"앱에서 보기: {app_url}", f"수신 거부: {unsub_url}"]
     html.append(
         f'<p style="margin-top:28px;padding-top:14px;border-top:1px solid #dde3ea;font-size:12px;color:#6b7785">'
-        f'<a href="{escape(app_url, quote=True)}" style="color:#6b7785">주제 관리</a> · '
+        f'<a href="{escape(app_url, quote=True)}" style="color:#6b7785">앱에서 전체 기사 보기</a> · '
         f'<a href="{escape(unsub_url, quote=True)}" style="color:#6b7785">수신 거부</a></p></div>')
     return subject, "\n".join(text), "".join(html)

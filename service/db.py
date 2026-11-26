@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_articles_topic_day ON articles(topic_id, collecte
 CREATE TABLE IF NOT EXISTS digests (
   topic_id INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
   date TEXT NOT NULL,
-  lines TEXT NOT NULL,
+  items TEXT NOT NULL,
   method TEXT NOT NULL,
   article_count INTEGER NOT NULL,
   PRIMARY KEY (topic_id, date)

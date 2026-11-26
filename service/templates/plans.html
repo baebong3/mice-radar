@@ -1,18 +1,23 @@
 {% extends "base.html" %}
 {% block title %}요금제 · {{ service }}{% endblock %}
 {% block body %}
-<section class="bar"><div><h1>요금제</h1><p class="meta">등록할 수 있는 주제 수만 다르고 기능은 같습니다.</p></div></section>
-<div class="grid plans">
-{% for code, name, limit, price in plans %}
+<section class="day"><p class="kicker">등록할 수 있는 주제 수만 다릅니다</p><h1>요금제</h1></section>
+<div class="plans">
+{% for code, name, limit, price, who in plans %}
 <article class="card plan{% if user and user.plan == code %} on{% endif %}">
-  <h2>{{ name }}</h2>
-  <p class="num">주제 {{ limit }}개</p>
-  <p class="price">{% if price %}월 {{ "{:,}".format(price) }}원{% else %}0원{% endif %}</p>
-  {% if user and user.plan == code %}<p class="meta">사용 중</p>
-  {% elif price %}<p class="meta">결제 준비 중</p>
-  {% else %}<a class="btn small" href="/login">시작하기</a>{% endif %}
+  <div>
+    <h2>{{ name }}</h2>
+    <p class="meta">{{ who }}</p>
+  </div>
+  <div class="fee">
+    <p class="num">주제 {{ limit }}개</p>
+    <p class="price">{% if price %}월 {{ "{:,}".format(price) }}원{% else %}0원{% endif %}</p>
+    {% if user and user.plan == code %}<span class="tag">사용 중</span>
+    {% elif price %}<span class="tag off">결제 준비 중</span>
+    {% elif not user %}<a class="btn small" href="/login">시작하기</a>{% endif %}
+  </div>
 </article>
 {% endfor %}
 </div>
-<p class="hint">유료 요금제는 결제 기능을 준비하고 있습니다. 표시된 금액은 확정 전이며 바뀔 수 있습니다.</p>
+<p class="hint">모든 요금제에서 매일 핵심 뉴스 3개 요약, 메일 리포트, 전체 기사 목록을 똑같이 제공합니다. 금액은 부가세 포함입니다.</p>
 {% endblock %}

@@ -33,11 +33,12 @@ app = FastAPI(title=config.SERVICE_NAME, lifespan=lifespan, docs_url=None, redoc
 app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(HERE, "templates"))
 templates.env.globals.update(service=config.SERVICE_NAME, plans=config.PLANS)
+templates.env.filters["pretty_date"] = config.pretty_date
 
 EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s.]{2,}$")
 COOKIE = "sid"
 MESSAGES = {
-    "added": "주제를 등록했습니다. 첫 수집 결과는 잠시 뒤 새로고침하면 보입니다.",
+    "added": "주제를 등록했습니다. 첫 수집이 끝나면 핵심 뉴스가 나타납니다.",
     "dup": "이미 등록한 주제입니다.",
     "limit": "현재 요금제에서 등록할 수 있는 주제 수를 모두 썼습니다.",
     "bad": "주제는 2~40자로 입력해 주십시오.",
@@ -98,8 +99,8 @@ def home(request: Request, con=Depends(get_db)):
 
 @app.get("/plans", response_class=HTMLResponse)
 def plans(request: Request, con=Depends(get_db)):
-    user, _ = current(request, con)
-    return page(request, "plans.html", user=user)
+    user, csrf = current(request, con)
+    return page(request, "plans.html", user=user, csrf=csrf, tab="settings")
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -171,14 +172,30 @@ def logout(request: Request, csrf: str = Form(""), con=Depends(get_db)):
     return resp
 
 
-@app.get("/app", response_class=HTMLResponse)
-def dashboard(request: Request, con=Depends(get_db)):
+def member_page(request, con, name, **ctx):
     user, csrf = current(request, con)
     if not user:
         return go("/login")
     blocks = reports.user_report(con, user["id"])
-    return page(request, "dashboard.html", user=user, csrf=csrf, blocks=blocks,
-                limit=config.PLAN_LIMIT.get(user["plan"], 5), plan_name=config.PLAN_NAME.get(user["plan"], "무료"))
+    return page(request, name, user=user, csrf=csrf, blocks=blocks, today=config.today_kst(),
+                limit=config.PLAN_LIMIT.get(user["plan"], 5), plan_name=config.PLAN_NAME.get(user["plan"], "무료"),
+                **ctx)
+
+
+@app.get("/app", response_class=HTMLResponse)
+def today(request: Request, con=Depends(get_db)):
+    """첫 화면: 주제별 오늘의 핵심 뉴스 3개"""
+    return member_page(request, con, "today.html", tab="today", suggested=config.SUGGESTED)
+
+
+@app.get("/topics", response_class=HTMLResponse)
+def topics(request: Request, con=Depends(get_db)):
+    return member_page(request, con, "topics.html", tab="topics")
+
+
+@app.get("/settings", response_class=HTMLResponse)
+def settings(request: Request, con=Depends(get_db)):
+    return member_page(request, con, "settings.html", tab="settings")
 
 
 def guard(request, con, csrf):
@@ -197,17 +214,17 @@ def add_topic(request: Request, bg: BackgroundTasks, query: str = Form(""), csrf
         return go("/app", "form")
     q, norm = norm_topic(query)
     if not 2 <= len(q) <= 40:
-        return go("/app", "bad")
+        return go("/topics", "bad")
     now = config.now_kst().isoformat()
     con.execute("begin immediate")  # 동시에 여러 번 눌러도 한도를 넘지 않도록 잠근 뒤 센다
     if con.execute("select 1 from subscriptions s join topics t on t.id=s.topic_id where s.user_id=? and t.norm=?",
                    (user["id"], norm)).fetchone():
         con.rollback()
-        return go("/app", "dup")
+        return go("/topics", "dup")
     count = con.execute("select count(*) from subscriptions where user_id=?", (user["id"],)).fetchone()[0]
     if count >= config.PLAN_LIMIT.get(user["plan"], 5):
         con.rollback()
-        return go("/app", "limit")
+        return go("/topics", "limit")
     con.execute("insert or ignore into topics(query,norm,created_at) values(?,?,?)", (q, norm, now))
     topic = con.execute("select id, last_collected_at from topics where norm=?", (norm,)).fetchone()
     con.execute("insert into subscriptions(user_id,topic_id,created_at) values(?,?,?)", (user["id"], topic["id"], now))
@@ -227,7 +244,7 @@ def delete_topic(topic_id: int, request: Request, csrf: str = Form(""), con=Depe
     con.execute("delete from topics where id=? and not exists(select 1 from subscriptions where topic_id=?)",
                 (topic_id, topic_id))
     con.commit()
-    return go("/app", "removed")
+    return go("/topics", "removed")
 
 
 @app.post("/settings/mail")
@@ -237,7 +254,7 @@ def set_mail(request: Request, on: int = Form(0), csrf: str = Form(""), con=Depe
         return go("/app", "form")
     con.execute("update users set mail_on=? where id=?", (1 if on else 0, user["id"]))
     con.commit()
-    return go("/app", "mail_on" if on else "mail_off")
+    return go("/settings", "mail_on" if on else "mail_off")
 
 
 @app.post("/account/delete")

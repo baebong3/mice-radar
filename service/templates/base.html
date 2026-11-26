@@ -4,25 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{% block title %}{{ service }}{% endblock %}</title>
-<meta name="description" content="주제를 등록하면 매일 뉴스를 모아 요약 리포트를 메일로 보내드립니다.">
+<meta name="description" content="주제를 등록하면 매일 핵심 뉴스 3개를 골라 요약해 드립니다.">
 <meta name="theme-color" content="#14324f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="{{ service }}">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
 <link rel="stylesheet" href="/static/app.css">
 </head>
-<body>
+<body class="{{ 'member' if user else 'guest' }}">
 <header class="top">
   <a class="brand" href="/"><img src="/static/icon.svg" alt="" width="28" height="28">{{ service }}</a>
-  <nav>
-    <a href="/plans">요금제</a>
-    {% if user %}
-    <a href="/app">내 주제</a>
-    <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="link">로그아웃</button></form>
-    {% else %}
-    <a class="btn small" href="/login">시작하기</a>
-    {% endif %}
+  {% if user %}
+  <nav class="tabs" aria-label="주 메뉴">
+    <a href="/app" {% if tab == "today" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>오늘</a>
+    <a href="/topics" {% if tab == "topics" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>주제</a>
+    <a href="/settings" {% if tab == "settings" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>설정</a>
   </nav>
+  {% else %}
+  <nav class="guest-nav"><a href="/plans">요금제</a><a class="btn small" href="/login">시작하기</a></nav>
+  {% endif %}
 </header>
 <main>
 {% if message %}<p class="flash" role="status">{{ message }}</p>{% endif %}

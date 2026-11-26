@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}주제 · {{ service }}{% endblock %}
+{% block body %}
+<section class="day">
+  <p class="kicker">{{ plan_name }} 요금제</p>
+  <h1>주제 <span class="count">{{ blocks|length }}/{{ limit }}</span></h1>
+</section>
+<section class="card">
+  <form method="post" action="/topics" class="add">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input name="query" placeholder="새 주제 (예: 반도체 수출)" minlength="2" maxlength="40" required aria-label="새 주제" {% if blocks|length >= limit %}disabled{% endif %}>
+    <button class="btn" {% if blocks|length >= limit %}disabled{% endif %}>등록</button>
+  </form>
+  {% if blocks|length >= limit %}<p class="meta">등록 한도를 모두 썼습니다. <a href="/plans">요금제 보기</a></p>
+  {% else %}<p class="meta">뉴스 검색어로 쓰입니다. 구체적으로 적을수록 관련 기사만 모입니다.</p>{% endif %}
+  <ul class="rows">
+    {% for b in blocks %}
+    <li>
+      <a href="/app#t{{ b.id }}">{{ b.query }}</a>
+      <form method="post" action="/topics/{{ b.id }}/delete" data-confirm="'{{ b.query }}' 주제를 삭제할까요?">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="link danger" aria-label="{{ b.query }} 삭제">삭제</button>
+      </form>
+    </li>
+    {% else %}
+    <li class="meta">등록한 주제가 없습니다.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

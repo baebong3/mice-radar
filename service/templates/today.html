@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}오늘의 핵심 뉴스 · {{ service }}{% endblock %}
+{% block body %}
+<section class="day">
+  <p class="kicker">{{ today|pretty_date }}</p>
+  <h1>오늘의 핵심 뉴스</h1>
+</section>
+
+{% if not blocks %}
+<section class="card onboard">
+  <h2>첫 주제를 골라 보십시오</h2>
+  <p class="meta">누르면 바로 수집을 시작합니다. 무료로 {{ limit }}개까지 등록할 수 있습니다.</p>
+  <div class="chips">
+    {% for q in suggested %}
+    <form method="post" action="/topics"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="query" value="{{ q }}"><button class="chip">+ {{ q }}</button></form>
+    {% endfor %}
+  </div>
+  <form method="post" action="/topics" class="add">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input name="query" placeholder="직접 입력 (예: 회사명, 정책명)" minlength="2" maxlength="40" required aria-label="새 주제">
+    <button class="btn">등록</button>
+  </form>
+</section>
+{% endif %}
+
+{% if blocks|length > 1 %}
+<nav class="chips jump" aria-label="주제 바로가기">
+  {% for b in blocks %}<a class="chip" href="#t{{ b.id }}">{{ b.query }}</a>{% endfor %}
+</nav>
+{% endif %}
+
+{% for b in blocks %}
+<section class="card topic" id="t{{ b.id }}">
+  <header>
+    <h2>{{ b.query }}</h2>
+    {% if b.date and b.count %}<span class="meta">{% if b.date != today %}{{ b.date|pretty_date }} · {% endif %}새 기사 {{ b.count }}건</span>{% endif %}
+  </header>
+  {% if not b.date %}
+  <p class="pending" data-pending>기사를 모으는 중입니다. 잠시만 기다려 주십시오.</p>
+  {% elif not b.count %}
+  <p class="meta none">오늘은 새 기사가 없습니다.</p>
+  {% else %}
+  {% include "_top3.html" %}
+  {% if b.articles|length > b["items"]|length %}
+  <details>
+    <summary>전체 기사 보기</summary>
+    <ul class="links">
+      {% for a in b.articles %}<li><a href="{{ a.url }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a> <span>{{ a.media }}</span></li>{% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+  {% endif %}
+</section>
+{% endfor %}
+
+{% if blocks and blocks|length < limit %}
+<p class="more"><a class="btn ghost" href="/topics">주제 추가 ({{ blocks|length }}/{{ limit }})</a></p>
+{% endif %}
+{% endblock %}
