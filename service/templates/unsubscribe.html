@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}수신 거부 · {{ service }}{% endblock %}
+{% block body %}
+<section class="narrow card">
+  {% if done %}
+  <h1>수신 거부를 처리했습니다</h1>
+  <p>일일 리포트 메일을 더 보내지 않습니다. 로그인한 뒤 설정에서 다시 켤 수 있습니다.</p>
+  {% else %}
+  <h1>일일 리포트 메일 수신 거부</h1>
+  <p>아래 버튼을 누르면 일일 리포트 메일을 더 보내지 않습니다. 등록한 주제는 그대로 남습니다.</p>
+  <form method="post" action="/unsubscribe?t={{ t|urlencode }}" class="stack"><button class="btn">수신 거부</button></form>
+  {% endif %}
+</section>
+{% endblock %}

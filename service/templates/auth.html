@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}로그인 · {{ service }}{% endblock %}
+{% block body %}
+<section class="narrow card">
+  <h1>로그인</h1>
+  <p>아래 버튼을 누르면 이 기기에서 로그인됩니다.</p>
+  <form method="post" action="/auth" class="stack">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button class="btn">로그인 계속</button>
+  </form>
+</section>
+{% endblock %}

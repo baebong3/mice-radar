@@ -1,0 +1,16 @@
+{
+  "name": "이슈레이더",
+  "short_name": "이슈레이더",
+  "description": "주제를 등록하면 매일 뉴스를 모아 요약 리포트를 보내드립니다.",
+  "lang": "ko",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#14324f",
+  "icons": [
+    {"src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
