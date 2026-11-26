@@ -310,7 +310,7 @@ async def security_headers(request, call_next):
     resp.headers.setdefault("Referrer-Policy", "same-origin")
     resp.headers.setdefault(
         "Content-Security-Policy",
-        "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'")
+        "default-src 'self'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; script-src 'self'; frame-ancestors 'none'")
     return resp
 
 

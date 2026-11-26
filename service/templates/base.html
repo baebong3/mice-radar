@@ -5,27 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{% block title %}{{ service }}{% endblock %}</title>
 <meta name="description" content="주제를 등록하면 매일 핵심 뉴스 3개를 골라 요약해 드립니다.">
-<meta name="theme-color" content="#14324f">
+<meta name="theme-color" content="#1F5F5B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="{{ service }}">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="/static/app.css">
 </head>
 <body class="{{ 'member' if user else 'guest' }}">
 <header class="top">
-  <a class="brand" href="/"><img src="/static/icon.svg" alt="" width="28" height="28">{{ service }}</a>
-  {% if user %}
-  <nav class="tabs" aria-label="주 메뉴">
-    <a href="/app" {% if tab == "today" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>오늘</a>
-    <a href="/topics" {% if tab == "topics" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>주제</a>
-    <a href="/settings" {% if tab == "settings" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>설정</a>
-  </nav>
-  {% else %}
+  <a class="logo" href="/"><img src="/static/icon.svg" alt="" width="26" height="26"><span>이슈<b>레이더</b></span></a>
+  {% if not user %}
   <nav class="guest-nav"><a href="/plans">요금제</a><a class="btn small" href="/login">시작하기</a></nav>
   {% endif %}
 </header>
+{% if user %}
+<nav class="tabs" aria-label="주 메뉴">
+  <a href="/app" {% if tab == "today" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>오늘</a>
+  <a href="/topics" {% if tab == "topics" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>주제</a>
+  <a href="/settings" {% if tab == "settings" %}aria-current="page"{% endif %}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>설정</a>
+</nav>
+{% endif %}
 <main>
 {% if message %}<p class="flash" role="status">{{ message }}</p>{% endif %}
 {% block body %}{% endblock %}

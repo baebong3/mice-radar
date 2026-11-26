@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}요금제 · {{ service }}{% endblock %}
 {% block body %}
-<section class="day"><p class="kicker">등록할 수 있는 주제 수만 다릅니다</p><h1>요금제</h1></section>
+<section class="page-h"><p class="eyebrow">등록할 수 있는 주제 수만 다릅니다</p><h1>요금제</h1></section>
 <div class="plans">
 {% for code, name, limit, price, who in plans %}
 <article class="card plan{% if user and user.plan == code %} on{% endif %}">
@@ -11,9 +11,9 @@
   </div>
   <div class="fee">
     <p class="num">주제 {{ limit }}개</p>
-    <p class="price">{% if price %}월 {{ "{:,}".format(price) }}원{% else %}0원{% endif %}</p>
+    <p class="price">{{ "{:,}".format(price) }}원{% if price %}<small> / 월</small>{% endif %}</p>
     {% if user and user.plan == code %}<span class="tag">사용 중</span>
-    {% elif price %}<span class="tag off">결제 준비 중</span>
+    {% elif price %}<span class="tag wait">결제 준비 중</span>
     {% elif not user %}<a class="btn small" href="/login">시작하기</a>{% endif %}
   </div>
 </article>

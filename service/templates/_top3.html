@@ -2,11 +2,11 @@
 <ol class="top3">
 {% for it in b["items"] %}
   <li>
-    <span class="rank" aria-hidden="true">{{ loop.index }}</span>
+    <span class="rank" aria-hidden="true">0{{ loop.index }}</span>
     <div>
       <a class="headline" href="{{ it.url }}" target="_blank" rel="noopener noreferrer">{{ it.title }}</a>
       {% if it.summary %}<p class="sum">{{ it.summary }}</p>{% endif %}
-      <p class="src">{{ it.media }}{% if it.count > 1 %} 외 {{ it.count - 1 }}건 보도{% endif %}</p>
+      <p class="src">{{ it.media }}{% if it.count > 1 %}<span class="tag">{{ it.count }}개 매체 보도</span>{% endif %}</p>
     </div>
   </li>
 {% endfor %}

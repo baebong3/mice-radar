@@ -1,5 +1,5 @@
 // 정적 파일만 캐시한다. 화면(HTML)은 로그인 상태가 담겨 있어 캐시하지 않고, 끊겼을 때만 안내를 보여준다.
-const CACHE = "radar-static-v2";
+const CACHE = "radar-static-v3";
 const ASSETS = ["/static/app.css", "/static/app.js", "/static/icon.svg"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% block title %}오늘의 핵심 뉴스 · {{ service }}{% endblock %}
 {% block body %}
-<section class="day">
-  <p class="kicker">{{ today|pretty_date }}</p>
+<section class="page-h">
+  <p class="eyebrow">{{ today|pretty_date }}</p>
   <h1>오늘의 핵심 뉴스</h1>
 </section>
+{% if blocks %}
+<div class="kpis">
+  <div class="kpi"><span>등록 주제</span><b>{{ blocks|length }}<small>/ {{ limit }}개</small></b></div>
+  <div class="kpi"><span>새 기사</span><b>{{ blocks|sum(attribute="count") }}<small>건</small></b></div>
+</div>
+{% endif %}
 
 {% if not blocks %}
 <section class="card onboard">
@@ -33,17 +39,17 @@
 <section class="card topic" id="t{{ b.id }}">
   <header>
     <h2>{{ b.query }}</h2>
-    {% if b.date and b.count %}<span class="meta">{% if b.date != today %}{{ b.date|pretty_date }} · {% endif %}새 기사 {{ b.count }}건</span>{% endif %}
+    {% if b.date and b.count %}<span class="tag">{% if b.date != today %}{{ b.date|pretty_date }} · {% endif %}새 기사 {{ b.count }}건</span>{% endif %}
   </header>
   {% if not b.date %}
   <p class="pending" data-pending>기사를 모으는 중입니다. 잠시만 기다려 주십시오.</p>
   {% elif not b.count %}
-  <p class="meta none">오늘은 새 기사가 없습니다.</p>
+  <p class="none">오늘은 새 기사가 없습니다.</p>
   {% else %}
   {% include "_top3.html" %}
   {% if b.articles|length > b["items"]|length %}
   <details>
-    <summary>전체 기사 보기</summary>
+    <summary>전체 기사 {{ b.articles|length }}건 보기</summary>
     <ul class="links">
       {% for a in b.articles %}<li><a href="{{ a.url }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a> <span>{{ a.media }}</span></li>{% endfor %}
     </ul>

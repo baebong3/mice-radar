@@ -61,13 +61,13 @@ def render_email(blocks, day, unsub_url):
     text = [f"{config.SERVICE_NAME} · {day} 핵심 뉴스", ""]
     html = [
         '<div style="max-width:560px;margin:0 auto;font-family:-apple-system,\'Malgun Gothic\',sans-serif;'
-        'color:#1b2430;line-height:1.55">',
+        'color:#15191E;line-height:1.55">',
         f'<p style="font-size:13px;color:#6b7785;margin:0">{escape(day)}</p>',
         '<h1 style="font-size:22px;margin:2px 0 8px">오늘의 핵심 뉴스</h1>',
     ]
     for b in blocks:
         text.append(f"■ {b['query']}")
-        html.append(f'<h2 style="font-size:16px;margin:26px 0 4px;padding:6px 10px;background:#14324f;color:#fff;'
+        html.append(f'<h2 style="font-size:16px;margin:26px 0 4px;padding:6px 10px;background:#1F5F5B;color:#F7F6F2;'
                     f'border-radius:6px">{escape(b["query"])}</h2>')
         if not b["count"]:
             text += ["  새 기사가 없습니다.", ""]
@@ -80,8 +80,8 @@ def render_email(blocks, day, unsub_url):
             text.append(f"     {it['url']}")
             html.append(
                 '<table role="presentation" style="border-collapse:collapse;margin:12px 0"><tr>'
-                f'<td style="vertical-align:top;padding-right:10px;font-size:22px;font-weight:800;color:#d2452d">{i}</td>'
-                f'<td><a href="{escape(it["url"], quote=True)}" style="color:#1b2430;font-weight:700;font-size:16px;'
+                f'<td style="vertical-align:top;padding-right:10px;font-size:22px;font-weight:800;color:#1F5F5B">{i}</td>'
+                f'<td><a href="{escape(it["url"], quote=True)}" style="color:#15191E;font-weight:700;font-size:16px;'
                 f'text-decoration:none">{escape(it["title"])}</a>'
                 + (f'<div style="font-size:14px;margin-top:2px">{escape(it["summary"])}</div>' if it["summary"] else "")
                 + f'<div style="font-size:12px;color:#6b7785;margin-top:2px">{escape(_meta(it))}</div></td></tr></table>')
